@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NumPy Field Notes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@75..100,500..800&family=Public+Sans:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: an engineer's field notebook — narrow reading column, faint grid paper, numbered sections */
+:root{
+  --bg:#f6f7f4; --paper:#ffffff; --fg:#1c2421; --muted:#5d6a65; --line:#d9ded9; --grid:rgba(31,95,139,.06);
+  --accent:#1f5f8b; --accent-soft:#e3edf4; --hi:#f2b33d; --hi-soft:#fdf0d5; --ok:#2f7d4f; --bad:#b4442e;
+  --code-bg:#eef1ee;
+  --f-display:"Archivo",system-ui,sans-serif; --f-body:"Public Sans",system-ui,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#121715; --paper:#1a201e; --fg:#e4e9e6; --muted:#9aa7a2; --line:#2e3734; --grid:rgba(120,170,210,.05);
+  --accent:#7fb6dd; --accent-soft:#1d2d38; --hi:#f2b33d; --hi-soft:#3a2f17; --ok:#6cc08f; --bad:#e58a74; --code-bg:#0e1311; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121715; --paper:#1a201e; --fg:#e4e9e6; --muted:#9aa7a2; --line:#2e3734; --grid:rgba(120,170,210,.05);
+  --accent:#7fb6dd; --accent-soft:#1d2d38; --hi:#f2b33d; --hi-soft:#3a2f17; --ok:#6cc08f; --bad:#e58a74; --code-bg:#0e1311; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:16px/1.65 var(--f-body);
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:24px 24px;
+  padding-inline:16px;padding-block:0 64px}
+.wrap{max-width:820px;margin:0 auto}
+header{padding-block:48px 28px;border-bottom:2px solid var(--fg);margin-bottom:28px}
+.eyebrow{font:600 12px/1 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+h1{font-family:var(--f-display);font-stretch:80%;font-weight:800;font-size:clamp(2.4rem,7vw,3.8rem);line-height:1;margin:.35em 0 .3em;text-wrap:balance;letter-spacing:-.01em}
+h2{font-family:var(--f-display);font-stretch:85%;font-weight:700;font-size:1.65rem;line-height:1.15;margin:0 0 .6em;text-wrap:balance;display:flex;gap:.6em;align-items:baseline}
+h2 .n{font:600 .8rem var(--f-mono);color:var(--accent);border:1.5px solid var(--accent);border-radius:4px;padding:2px 6px;flex:none;position:relative;top:-3px}
+h3{font-family:var(--f-display);font-weight:700;font-size:1.1rem;margin:1.4em 0 .4em}
+.lead{font-size:1.08rem;color:var(--muted);max-width:62ch;margin:0}
+.meta{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:18px;font:13px var(--f-mono);color:var(--muted)}
+.meta b{color:var(--fg);font-weight:600}
+section{background:var(--paper);border:1px solid var(--line);border-radius:6px;padding:28px clamp(16px,4vw,32px);margin-bottom:22px}
+p{margin:.6em 0;max-width:68ch}
+.src{font:12px var(--f-mono);color:var(--muted)}
+code{font:.88em var(--f-mono);background:var(--code-bg);padding:1px 5px;border-radius:3px}
+pre{font:13.5px/1.55 var(--f-mono);background:var(--code-bg);padding:14px 16px;border-radius:5px;overflow-x:auto;margin:.8em 0}
+pre .c{color:var(--muted)} pre .o{color:var(--ok)}
+.tbl{overflow-x:auto;margin:.8em 0}
+table{border-collapse:collapse;width:100%;font-size:.93rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:600 12px var(--f-mono);text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.two{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.two>*{min-width:0}
+.note{border-left:3px solid var(--hi);background:var(--hi-soft);padding:10px 14px;border-radius:0 4px 4px 0;margin:1em 0}
+.note.blue{border-color:var(--accent);background:var(--accent-soft)}
+.note b:first-child{display:block;font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px}
+.civil{font-size:.95rem}
+.civil::before{content:"In civil engineering";display:block;font:600 12px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
+nav.toc{display:flex;flex-wrap:wrap;gap:6px;margin:0 0 22px}
+nav.toc a{font:13px var(--f-mono);color:var(--fg);text-decoration:none;border:1px solid var(--line);background:var(--paper);padding:4px 10px;border-radius:20px}
+nav.toc a:hover,nav.toc a:focus-visible{border-color:var(--accent);color:var(--accent);outline:none}
+/* interactive cells */
+.cells{display:flex;flex-wrap:wrap;gap:4px;margin:12px 0}
+.cell{width:46px;text-align:center;font:14px var(--f-mono);border:1.5px solid var(--line);border-radius:4px;padding:6px 0 4px;background:var(--paper);transition:background .15s,border-color .15s}
+.cell small{display:block;font-size:10px;color:var(--muted)}
+.cell.on{background:var(--hi-soft);border-color:var(--hi);font-weight:600}
+.ctrl{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;font:14px var(--f-mono)}
+.ctrl label{display:flex;gap:6px;align-items:center}
+.ctrl input{width:64px;font:14px var(--f-mono);padding:5px 6px;border:1px solid var(--line);border-radius:4px;background:var(--bg);color:var(--fg)}
+.out{font:14px var(--f-mono);margin-top:8px;padding:8px 12px;background:var(--code-bg);border-radius:4px;overflow-x:auto}
+.btns{display:flex;flex-wrap:wrap;gap:8px}
+button{font:600 13px var(--f-mono);border:1.5px solid var(--accent);color:var(--accent);background:transparent;border-radius:4px;padding:6px 12px;cursor:pointer}
+button[aria-pressed="true"],button:hover{background:var(--accent);color:var(--paper)}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--hi);outline-offset:2px}
+.grid2d{display:inline-grid;grid-template-columns:auto repeat(4,52px) auto;gap:4px;align-items:center;font:14px var(--f-mono);margin:12px 0}
+.grid2d .h{font-size:11px;color:var(--muted);text-align:center}
+.grid2d .v{text-align:center;padding:7px 0;border:1.5px solid var(--line);border-radius:4px}
+.grid2d .v.on{background:var(--hi-soft);border-color:var(--hi)}
+.grid2d .r{text-align:center;padding:7px 4px;font-weight:600;color:var(--accent)}
+.grid2d .r:empty{visibility:hidden}
+.axisfig{width:100%;max-width:520px;height:auto;display:block;margin:10px 0}
+details{border:1px solid var(--line);border-radius:5px;padding:10px 14px;margin:8px 0;background:var(--paper)}
+summary{cursor:pointer;font-weight:600}
+details[open] summary{margin-bottom:6px}
+.vocab{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:6px 18px;font-size:.94rem}
+.vocab div{display:flex;justify-content:space-between;gap:10px;border-bottom:1px dotted var(--line);padding:4px 0}
+.vocab span:last-child{color:var(--muted);font-style:italic;text-align:right}
+footer{font:12px var(--f-mono);color:var(--muted);text-align:center;margin-top:28px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+<header>
+  <div class="eyebrow">Study guide · Python for data analysis</div>
+  <h1>NumPy Field Notes</h1>
+  <p class="lead">Efficient data manipulation with NumPy, explained in simple English with examples from civil engineering.</p>
+  <div class="meta"><span><b>Covers</b> 1D and 2D arrays</span><span><b>By</b> Nacho Moreno</span><span><b>Level</b> Beginner</span><span><b>Language</b> Python 3</span><span><b>Practice</b> numpy-practice.ipynb</span></div>
+</header>
+
+<nav class="toc" aria-label="Sections">
+  <a href="#why">1 Why NumPy</a><a href="#create">2 Create</a><a href="#ufunc">3 Ufuncs</a><a href="#broadcast">4 Broadcasting</a><a href="#agg">5 Aggregation</a><a href="#slice1d">6 1D indexing</a><a href="#axis">7 Axis</a><a href="#index2d">8 2D indexing</a><a href="#extra">9 Appendix</a><a href="#quiz">10 Self-check</a><a href="#vocab">11 Vocabulary</a>
+</nav>
+
+<section id="why">
+  <h2><span class="n">01</span>Why NumPy?</h2>
+  <p>In a data project (the CRISP-DM cycle), step 3 is <b>data preparation</b>: you clean and transform data before you build a model. NumPy is the basic tool for this step in Python. Pandas and most machine-learning libraries are built on top of it.</p>
+  <div class="tbl"><table>
+    <tr><th></th><th>Python list</th><th>NumPy ndarray</th></tr>
+    <tr><td>Element type</td><td>Can mix types</td><td>All elements have the same type</td></tr>
+    <tr><td>Math</td><td>Needs a <code>for</code> loop</td><td>One line: <code>a + b</code></td></tr>
+    <tr><td>Speed</td><td>Slow for big data</td><td>Fast (written in C)</td></tr>
+    <tr><td>Tables (2D)</td><td>Lists inside lists, hard to use</td><td>Easy, with the idea of <b>axis</b></td></tr>
+  </table></div>
+  <pre><span class="c"># always import it like this</span>
+import numpy as np</pre>
+  <p class="note blue"><b>Tip</b>Functions are something to look up, not to memorize. Use the official NumPy docs when you need something new.</p>
+</section>
+
+<section id="create">
+  <h2><span class="n">02</span>Creating arrays</h2>
+  <pre>a = np.array([5, 6, 8])                 <span class="c"># 1D, from a list</span>
+b = np.array([[5, 6, 8], [9, 2, 1]])    <span class="c"># 2D, from a list of lists</span></pre>
+  <p class="civil">A list of concrete test results, a column of sensor readings, or a table of loads per floor: all of them become ndarrays.</p>
+</section>
+
+<section id="ufunc">
+  <h2><span class="n">03</span>Universal functions (ufuncs)</h2>
+  <p>A <b>ufunc</b> works on <b>each element</b>, position by position. No loop needed.</p>
+  <div class="two">
+    <pre>a = np.array([3, 5])
+b = np.array([3, 2])
+a + b   <span class="o"># array([6, 7])</span>
+a - b   <span class="o"># array([0, 3])</span>
+a * b   <span class="o"># array([9, 10])</span>
+a / b   <span class="o"># array([1., 2.5])</span></pre>
+    <pre>a == b  <span class="o"># array([ True, False])</span>
+a > b   <span class="o"># array([False,  True])</span>
+
+x = np.array([1, 2])
+np.exp(x)  <span class="o"># [2.718, 7.389]</span>
+np.log(x)  <span class="o"># [0., 0.693]</span>
+np.sin(x)  <span class="o"># radians!</span></pre>
+  </div>
+  <div class="note"><b>Trap: lists are different</b>
+    With lists, <code>[3, 5] + [3, 2]</code> gives <code>[3, 5, 3, 2]</code> (it <b>joins</b> them), and <code>-</code>, <code>*</code>, <code>/</code> give an error. <code>[3,5] == [3,2]</code> gives one single <code>False</code> for the whole list.</div>
+  <p class="src">Note: <code>a * b</code> is element-wise. It is <b>not</b> matrix multiplication.</p>
+</section>
+
+<section id="broadcast">
+  <h2><span class="n">04</span>Broadcasting</h2>
+  <p>When two arrays have different shapes, NumPy <b>stretches</b> the smaller one (dimensions of size 1) so that the shapes match.</p>
+  <pre>fc = np.array([21.0, 24.5])        <span class="c"># concrete strength, MPa</span>
+fc + 2       <span class="o"># array([23. , 26.5])  → 2 becomes [2, 2]</span>
+fc * 10.197  <span class="o"># array([214.137, 249.8265])  → kg/cm²</span>
+
+col = np.array([[10], [20], [30]])  <span class="c"># shape (3, 1)</span>
+row = np.array([1, 2])              <span class="c"># shape (2,) → treated as (1, 2)</span>
+col + row  <span class="o"># [[11, 12], [21, 22], [31, 32]]  shape (3, 2)</span></pre>
+  <p class="civil">Convert all strengths from MPa to kg/cm² in one line: <code>fc * 10.197</code>. Or divide a table of loads (floors × columns) by the area of each column: <code>loads / area</code>.</p>
+</section>
+
+<section id="agg">
+  <h2><span class="n">05</span>Aggregation functions</h2>
+  <p>They take many values and give back <b>one</b> value (or one value per row/column, see section 7).</p>
+  <pre>a = np.array([2, 4, 6])
+np.max(a)   <span class="o"># 6</span>        np.min(a)   <span class="o"># 2</span>
+np.sum(a)   <span class="o"># 12</span>       np.mean(a)  <span class="o"># 4.0</span>
+np.std(a)   <span class="o"># 1.633  (standard deviation)</span></pre>
+  <p class="civil">Mean and standard deviation of concrete cylinder tests are exactly what you need to check quality control.</p>
+</section>
+
+<section id="slice1d">
+  <h2><span class="n">06</span>Indexing and slicing in 1D</h2>
+  <p>Indexes start at <b>0</b>. Negative indexes count from the end (<code>-1</code> is the last). A slice is <code>a[start : end : step]</code>, and <b>the end is not included</b>.</p>
+  <p><b>Try it.</b> Change the numbers and watch which elements are selected. Leave a box empty to omit it.</p>
+  <div class="ctrl">
+    <span>a[</span>
+    <label><input id="s-start" type="number" placeholder="start" value="1" aria-label="start"></label>:
+    <label><input id="s-end" type="number" placeholder="end" value="7" aria-label="end"></label>:
+    <label><input id="s-step" type="number" placeholder="step" value="2" aria-label="step"></label>
+    <span>]</span>
+  </div>
+  <div class="cells" id="s-cells"></div>
+  <div class="out" id="s-out"></div>
+  <h3>Summary</h3>
+  <div class="tbl"><table>
+    <tr><th>Code</th><th>Meaning</th><th>Result for a = [0, 5, 10, …, 45]</th></tr>
+    <tr><td><code>a[1]</code></td><td>one element</td><td>5</td></tr>
+    <tr><td><code>a[-1]</code></td><td>last element</td><td>45</td></tr>
+    <tr><td><code>a[[1, 4, 8]]</code></td><td>several positions (a list)</td><td>[5, 20, 40]</td></tr>
+    <tr><td><code>a[1:7]</code></td><td>from 1 to 6</td><td>[5, 10, 15, 20, 25, 30]</td></tr>
+    <tr><td><code>a[1:]</code> / <code>a[:7]</code></td><td>from 1 to the end / from the start to 6</td><td>…</td></tr>
+    <tr><td><code>a[::2]</code></td><td>every 2 elements</td><td>[0, 10, 20, 30, 40]</td></tr>
+  </table></div>
+  <p class="civil">Sensor data every 30 minutes → <code>a[::2]</code> gives one value every hour. Settlement readings per day → <code>a[:7]</code> is the first week.</p>
+</section>
+
+<section id="axis">
+  <h2><span class="n">07</span>2D arrays and the axis</h2>
+  <p>This is the most important idea in this guide. In a 2D array:</p>
+  <svg class="axisfig" viewBox="0 0 520 190" role="img" aria-label="axis 0 goes down the rows, axis 1 goes across the columns">
+    <g font-family="JetBrains Mono, monospace" font-size="14" fill="var(--fg)">
+      <rect x="150" y="40" width="240" height="120" fill="var(--accent-soft)" stroke="var(--line)"/>
+      <line x1="150" y1="80" x2="390" y2="80" stroke="var(--line)"/><line x1="150" y1="120" x2="390" y2="120" stroke="var(--line)"/>
+      <line x1="210" y1="40" x2="210" y2="160" stroke="var(--line)"/><line x1="270" y1="40" x2="270" y2="160" stroke="var(--line)"/><line x1="330" y1="40" x2="330" y2="160" stroke="var(--line)"/>
+      <text x="180" y="65" text-anchor="middle">320</text><text x="240" y="65" text-anchor="middle">410</text><text x="300" y="65" text-anchor="middle">405</text><text x="360" y="65" text-anchor="middle">310</text>
+      <text x="180" y="105" text-anchor="middle">300</text><text x="240" y="105" text-anchor="middle">395</text><text x="300" y="105" text-anchor="middle">390</text><text x="360" y="105" text-anchor="middle">290</text>
+      <text x="180" y="145" text-anchor="middle">180</text><text x="240" y="145" text-anchor="middle">240</text><text x="300" y="145" text-anchor="middle">235</text><text x="360" y="145" text-anchor="middle">175</text>
+      <line x1="120" y1="45" x2="120" y2="150" stroke="var(--accent)" stroke-width="2.5"/><path d="M113 145 L120 158 L127 145 Z" fill="var(--accent)"/>
+      <text x="108" y="105" text-anchor="end" fill="var(--accent)" font-weight="600">axis=0</text><text x="108" y="122" text-anchor="end" fill="var(--muted)" font-size="11">down (rows)</text>
+      <line x1="155" y1="22" x2="378" y2="22" stroke="var(--hi)" stroke-width="2.5"/><path d="M373 15 L386 22 L373 29 Z" fill="var(--hi)"/>
+      <text x="270" y="13" text-anchor="middle" fill="var(--fg)" font-weight="600">axis=1 · across (columns)</text>
+      <text x="402" y="65" fill="var(--muted)" font-size="12">Floor 1</text><text x="402" y="105" fill="var(--muted)" font-size="12">Floor 2</text><text x="402" y="145" fill="var(--muted)" font-size="12">Floor 3</text>
+      <text x="180" y="180" text-anchor="middle" fill="var(--muted)" font-size="12">C1</text><text x="240" y="180" text-anchor="middle" fill="var(--muted)" font-size="12">C2</text><text x="300" y="180" text-anchor="middle" fill="var(--muted)" font-size="12">C3</text><text x="360" y="180" text-anchor="middle" fill="var(--muted)" font-size="12">C4</text>
+    </g>
+  </svg>
+  <p><b>Rule to remember:</b> the axis you write is the one that <b>disappears</b>. <code>axis=0</code> squeezes the rows together, so you get <b>one result per column</b>. <code>axis=1</code> squeezes the columns, so you get <b>one result per row</b>.</p>
+  <p><b>Try it.</b> Click a function to see the result on the table of column loads (kN): 3 floors × 4 columns.</p>
+  <div class="btns" role="group" aria-label="choose function">
+    <button type="button" data-ax="none" aria-pressed="false">np.max(loads)</button>
+    <button type="button" data-ax="0" aria-pressed="true">np.max(loads, axis=0)</button>
+    <button type="button" data-ax="1" aria-pressed="false">np.max(loads, axis=1)</button>
+  </div>
+  <div class="tbl"><div class="grid2d" id="ax-grid"></div></div>
+  <div class="out" id="ax-out"></div>
+  <p class="civil">In the demo above, <code>np.sum(loads, axis=0)</code> is the total load that each column takes to the foundation.</p>
+</section>
+
+<section id="index2d">
+  <h2><span class="n">08</span>Indexing in 2D</h2>
+  <pre>a = np.array([[10, 20,  30,  40],
+              [50, 60,  70,  80],
+              [90, 100, 110, 120]])</pre>
+  <h3>Basic: a[row, column] and slices</h3>
+  <pre>a[0, 1]      <span class="o"># 20</span>
+a[0]         <span class="o"># [10, 20, 30, 40]   same as a[0, :]  → one row</span>
+a[:, 1]      <span class="o"># [20, 60, 100]      → one column</span>
+a[:2, 1:]    <span class="o"># [[20, 30, 40], [60, 70, 80]]</span></pre>
+  <h3>Advanced: lists of indexes</h3>
+  <p>Write one list for the rows and one list for the columns. NumPy takes them as <b>pairs</b>.</p>
+  <pre>a[[0, 2], [1, 3]]          <span class="o"># [20, 120]  → pairs (0,1) and (2,3)</span>
+a[0, [1, 3]]               <span class="o"># [20, 40]   → 0 is broadcast to [0, 0]</span>
+a[[[0], [2]], [1, 3]]      <span class="o"># [[20, 40], [100, 120]]  → rows 0 and 2, columns 1 and 3</span>
+a[[0, 2], 1:]              <span class="o"># [[20, 30, 40], [100, 110, 120]]  → advanced + basic</span></pre>
+  <p class="note"><b>Careful</b><code>a[[0, 2], [1, 3]]</code> gives 2 values, <b>not</b> a 2×2 block. For a block of rows 0, 2 and columns 1, 3 you need the shape trick <code>a[[[0], [2]], [1, 3]]</code>: the output has the same shape as the index.</p>
+  <h3>Boolean: a condition as the index</h3>
+  <pre>fc = np.array([23.4, 19.8, 22.6, 20.5])
+fc &lt; 21        <span class="o"># [False, True, False, True]</span>
+fc[fc &lt; 21]    <span class="o"># [19.8, 20.5]</span>
+
+a[a &gt; 75]      <span class="o"># [80, 90, 100, 110, 120]  → with 2D arrays the result is always 1D</span></pre>
+  <p class="civil">Find all cylinders under the design strength (21 MPa): <code>fc[fc &lt; 21]</code>. Count them: <code>np.sum(fc &lt; 21)</code>.</p>
+</section>
+
+<section id="extra">
+  <h2><span class="n">09</span>Appendix: useful tools</h2>
+  <div class="tbl"><table>
+    <tr><th>Code</th><th>What it does</th><th>Example result</th></tr>
+    <tr><td><code>np.zeros((2, 3))</code></td><td>2×3 array of 0.0</td><td>[[0., 0., 0.], [0., 0., 0.]]</td></tr>
+    <tr><td><code>np.ones((2, 3))</code></td><td>2×3 array of 1.0</td><td>[[1., 1., 1.], [1., 1., 1.]]</td></tr>
+    <tr><td><code>np.arange(2, 8, 2)</code></td><td>like range(), but an array</td><td>[2, 4, 6]</td></tr>
+    <tr><td><code>a.reshape(2, 6)</code></td><td>new shape, same elements</td><td>(3, 4) → (2, 6)</td></tr>
+    <tr><td><code>a.reshape(2, -1)</code></td><td>-1 means "calculate it for me"</td><td>(3, 4) → (2, 6)</td></tr>
+    <tr><td><code>a.shape</code> / <code>a.ndim</code> / <code>a.dtype</code></td><td>shape, number of dimensions, data type</td><td>(3, 4) / 2 / int64</td></tr>
+    <tr><td><code>a.T</code></td><td>transpose: rows ↔ columns</td><td>(3, 4) → (4, 3)</td></tr>
+  </table></div>
+  <p class="src">The dot in <code>0.</code> means the number is a float.</p>
+</section>
+
+
+<section id="quiz">
+  <h2><span class="n">10</span>Self-check</h2>
+  <p>Answer in your head first, then open the answer. Use <code>a = np.array([[10,20,30,40],[50,60,70,80],[90,100,110,120]])</code> when needed.</p>
+  <details><summary>1. What is the result of <code>np.array([1, 2]) + np.array([3, 4])</code>? And with lists?</summary>Array: <code>[4, 6]</code>. Lists: <code>[1, 2, 3, 4]</code> (joined).</details>
+  <details><summary>2. What does <code>np.array([10, 20, 30]) * 2</code> give, and what is this feature called?</summary><code>[20, 40, 60]</code>. It is broadcasting: the scalar 2 is stretched to <code>[2, 2, 2]</code>.</details>
+  <details><summary>3. <code>a = np.arange(10)</code>. What is <code>a[3:9:3]</code>?</summary><code>[3, 6]</code>. Start at 3, step 3, stop before 9.</details>
+  <details><summary>4. What is the shape of <code>np.sum(a, axis=0)</code>?</summary><code>(4,)</code>: one value per column → <code>[150, 180, 210, 240]</code>.</details>
+  <details><summary>5. How do you get the last column of <code>a</code>?</summary><code>a[:, -1]</code> → <code>[40, 80, 120]</code>.</details>
+  <details><summary>6. What is the difference between <code>a[[0, 2], [0, 3]]</code> and <code>a[[[0], [2]], [0, 3]]</code>?</summary>The first gives 2 values: <code>[10, 120]</code>. The second gives a 2×2 block: <code>[[10, 40], [90, 120]]</code>.</details>
+  <details><summary>7. What is the shape of <code>a[a &gt; 50]</code>?</summary>1D, shape <code>(7,)</code> → <code>[60, 70, 80, 90, 100, 110, 120]</code>.</details>
+  <details><summary>8. <code>a</code> has shape (3, 4). What do <code>a.reshape(6, -1)</code> and <code>a.T</code> give?</summary>Shapes <code>(6, 2)</code> and <code>(4, 3)</code>.</details>
+</section>
+
+<section id="vocab">
+  <h2><span class="n">11</span>Vocabulary: English → Español</h2>
+  <p>Words from this guide that you will hear again and again in data science.</p>
+  <div class="vocab">
+    <div><span>array</span><span>arreglo</span></div>
+    <div><span>row / column</span><span>fila / columna</span></div>
+    <div><span>axis</span><span>eje</span></div>
+    <div><span>index (indexes)</span><span>índice(s)</span></div>
+    <div><span>slice / slicing</span><span>corte / rebanar</span></div>
+    <div><span>step</span><span>paso</span></div>
+    <div><span>element-wise</span><span>elemento a elemento</span></div>
+    <div><span>to broadcast</span><span>expandir, difundir</span></div>
+    <div><span>to aggregate</span><span>agregar, resumir</span></div>
+    <div><span>mean / average</span><span>media / promedio</span></div>
+    <div><span>standard deviation</span><span>desviación estándar</span></div>
+    <div><span>shape</span><span>forma, dimensiones</span></div>
+    <div><span>to transpose</span><span>transponer</span></div>
+    <div><span>nested list</span><span>lista anidada</span></div>
+    <div><span>to look up</span><span>buscar (información)</span></div>
+    <div><span>data preparation</span><span>preparación de datos</span></div>
+  </div>
+</section>
+
+<footer>NumPy Field Notes · Made by Nacho Moreno · Study notes for civil engineering students learning data analysis</footer>
+</div>
+
+<script>
+(function(){
+  // 1D slicer
+  const A=[0,5,10,15,20,25,30,35,40,45];
+  const cells=document.getElementById('s-cells'),out=document.getElementById('s-out');
+  A.forEach((v,i)=>{const d=document.createElement('div');d.className='cell';d.innerHTML=v+'<small>['+i+']</small>';cells.appendChild(d)});
+  const get=id=>{const v=document.getElementById(id).value.trim();return v===''?null:parseInt(v,10)};
+  function slice(){
+    const n=A.length;let st=get('s-start'),en=get('s-end'),sp=get('s-step');
+    if(sp===0){out.textContent='Error: step cannot be 0';return}
+    if(sp===null)sp=1;
+    const norm=(x,def)=>{if(x===null)return def;if(x<0)x+=n;return x};
+    let idx=[];
+    if(sp>0){let s=Math.max(0,Math.min(n,norm(st,0))),e=Math.max(0,Math.min(n,norm(en,n)));for(let i=s;i<e;i+=sp)idx.push(i)}
+    else{let s=norm(st,n-1),e=en===null?-1:norm(en,-1);s=Math.min(n-1,s);if(en!==null&&e<-1)e=-1;for(let i=s;i>e&&i>=0;i+=sp)idx.push(i)}
+    [...cells.children].forEach((c,i)=>c.classList.toggle('on',idx.includes(i)));
+    const f=x=>x===null?'':x;
+    out.textContent='a['+f(st)+':'+f(en)+(get('s-step')===null?'':':'+sp)+']  →  array(['+idx.map(i=>A[i]).join(', ')+'])';
+  }
+  ['s-start','s-end','s-step'].forEach(id=>document.getElementById(id).addEventListener('input',slice));
+  slice();
+
+  // axis demo
+  const M=[[320,410,405,310],[300,395,390,290],[180,240,235,175]];
+  const grid=document.getElementById('ax-grid'),aout=document.getElementById('ax-out');
+  function draw(mode){
+    grid.innerHTML='';
+    const add=(cls,t)=>{const d=document.createElement('div');d.className=cls;d.textContent=t;grid.appendChild(d);return d};
+    add('h','');['C1','C2','C3','C4'].forEach(x=>add('h',x));add('h',mode==='1'?'max':'');
+    const subj=['F1','F2','F3'];
+    const colMax=[0,1,2,3].map(j=>Math.max(...M.map(r=>r[j])));
+    const all=Math.max(...M.flat());
+    M.forEach((r,i)=>{
+      add('h',subj[i]);
+      const rm=Math.max(...r);
+      r.forEach((v,j)=>{const on=mode==='none'?v===all&&!grid.dataset.done:mode==='0'?v===colMax[j]:v===rm;const c=add('v'+(on?' on':''),v);if(mode==='none'&&v===all)grid.dataset.done=1});
+      add('r',mode==='1'?rm:'');
+    });
+    delete grid.dataset.done;
+    add('h','');
+    if(mode==='0'){colMax.forEach(v=>add('r',v));add('h','')}
+    aout.textContent=mode==='none'?'np.max(loads)  →  410   (one value for the whole table)'
+      :mode==='0'?'np.max(loads, axis=0)  →  array([320, 410, 405, 310])   (max load per column)'
+      :'np.max(loads, axis=1)  →  array([410, 395, 240])   (max load per floor / row)';
+  }
+  document.querySelectorAll('[data-ax]').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-ax]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));draw(b.dataset.ax)}));
+  draw('0');
+})();
+</script>
+</body>
+</html>
